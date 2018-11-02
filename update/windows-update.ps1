@@ -180,8 +180,9 @@ for ($i = 0; $i -lt $searchResult.Updates.Count; ++$i) {
         $updatesToDownloadSize += $update.MaxDownloadSize
         $updatesToDownload.Add($update) | Out-Null
     }
-
+    Write-Output "DEBUG Adding to updatesToInstall..."
     $updatesToInstall.Add($update) | Out-Null
+    Write-Output "DEBUG updatesToInstall.Count = $(updatesToInstall.Count)"
     if ($updatesToInstall.Count -ge $UpdateLimit) {
         $rebootRequired = $true
         break
@@ -218,6 +219,8 @@ if ($updatesToInstall.Count) {
     $updateInstaller = $updateSession.CreateUpdateInstaller()
     $updateInstaller.Updates = $updatesToInstall
     $installResult = $updateInstaller.Install()
+    Write-Output "DEBUG installResult ResultCode = $(installResult.ResultCode)"
+    Write-Output "DEBUG installResult RebootRequired = $(installResult.RebootRequired)"
     ExitWhenRebootRequired ($installResult.RebootRequired -or $rebootRequired)
 } else {
     Write-Output 'No Windows updates found'
