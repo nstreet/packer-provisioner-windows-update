@@ -182,8 +182,9 @@ for ($i = 0; $i -lt $searchResult.Updates.Count; ++$i) {
     }
     Write-Output "DEBUG Adding to updatesToInstall..."
     $updatesToInstall.Add($update) | Out-Null
-    Write-Output "DEBUG updatesToInstall.Count = $(updatesToInstall.Count)"
-    if ($updatesToInstall.Count -ge $UpdateLimit) {
+    $updatesCount = $updatesToInstall.Count
+    Write-Output "DEBUG  = $updatesCount"
+    if ($updatesCount -ge $UpdateLimit) {
         $rebootRequired = $true
         break
     }
@@ -218,10 +219,22 @@ if ($updatesToInstall.Count) {
     Write-Output 'Installing Windows updates...'
     $updateInstaller = $updateSession.CreateUpdateInstaller()
     $updateInstaller.Updates = $updatesToInstall
-    $installResult = $updateInstaller.Install()
-    Write-Output "DEBUG installResult ResultCode = $(installResult.ResultCode)"
-    Write-Output "DEBUG installResult RebootRequired = $(installResult.RebootRequired)"
-    ExitWhenRebootRequired ($installResult.RebootRequired -or $rebootRequired)
+    Try
+    {
+       $installResult = $updateInstaller.Install()
+       $resultCode = $installResult.ResultCode
+    }
+    Catch
+    {
+       $ErrorMessage = $_.Exception.Message
+       Write-Output $ErrorMessage
+    }
+    Write-Output "DEBUG installResult ResultCode = $resultCode"
+    Write-Output "DEBUG installResult RebootRequired = $resultCode"
+    if ($installResult.RebootRequired) {
+       $rebootRequired = $installResult.RebootRequired
+    }
+    ExitWhenRebootRequired ($rebootRequired)
 } else {
     Write-Output 'No Windows updates found'
 }
